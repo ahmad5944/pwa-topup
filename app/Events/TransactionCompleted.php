@@ -11,7 +11,5 @@ class TransactionCompleted
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public function __construct(public readonly Transaction $transaction)
-    {
-    }
+    public function __construct(public readonly Transaction $transaction) {}
 }

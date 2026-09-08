@@ -35,9 +35,23 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
+
         return [
             ...parent::share($request),
-            //
+            'userRoles' => $user?->getRoleNames() ?? [],
+            'unreadNotificationsCount' => $user
+                ? $user->appNotifications()->where('is_read', false)->count()
+                : 0,
+            'flash' => [
+                'success' => $request->session()->get('success'),
+                'error' => $request->session()->get('error'),
+            ],
+            // Midtrans client key is public-by-design (used to load Snap.js), never the server key.
+            'midtrans' => [
+                'clientKey' => config('services.midtrans.client_key'),
+                'isProduction' => (bool) config('services.midtrans.is_production'),
+            ],
         ];
     }
 }

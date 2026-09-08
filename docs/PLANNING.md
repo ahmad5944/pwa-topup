@@ -92,11 +92,11 @@
 - Hubungkan `PushToken` model + Firebase (`kreait/laravel-firebase`) ke Web Push (izin notifikasi browser, simpan token saat login).
 - Komponen "Add to Home Screen" prompt.
 
-### Fase 7 — QA & Hardening Keamanan
-- Feature test (`tests/Feature`) untuk tiap controller baru (khususnya `OrderController` — cek double-spend, race condition balance).
-- Tambahkan rate limiting di `POST /orders` (mirip `throttle:10,1` yang sudah dipakai di deposits).
-- Pastikan setiap route admin/reseller punya middleware role + Policy, dan tidak ada IDOR (user A tidak bisa lihat transaksi user B).
-- Audit ulang: pastikan `Provider.api_key/api_secret/webhook_secret` (sudah `encrypted` cast) tidak pernah ikut ter-serialize ke Inertia props.
+### Fase 7 — QA & Hardening Keamanan ✅
+- Feature test (`tests/Feature`) untuk tiap controller baru — done: `PlaceOrderActionTest`, `CreditBalanceActionTest`, `ApplyProviderResultActionTest`, `CatalogControllerTest`, `OrderControllerTest`, `TransactionControllerTest`, `FavoriteProductControllerTest`, `AppNotificationControllerTest`, `DepositControllerTest`, `AdminAccessTest`, `DashboardControllerTest`, plus `Unit/ProductPriceForLevelTest`. Dedicated `topup_pwa_test` Postgres DB + `.env.testing` added so tests never touch the dev dummy data.
+- Rate limiting di `POST /orders` — sudah ada (`throttle:10,1`, sama seperti deposits).
+- Pastikan setiap route admin/reseller punya middleware role + tidak ada IDOR — done, covered by `AdminAccessTest` + IDOR tests on transactions/favorites/notifications. **Bug fixed**: `role:admin,cs` was invalid (Spatie's RoleMiddleware only splits on `|`, not `,`) and was silently 403-ing every admin/cs user — corrected to `role:admin|cs`.
+- Audit: `Provider.api_key/api_secret/webhook_secret` never serialized to Inertia props — verified by `AdminAccessTest::test_provider_secrets_are_never_exposed_to_the_frontend`.
 
 ## 6. Struktur Folder Frontend (Target)
 
@@ -140,11 +140,11 @@ resources/js/
 
 ## 8. Checklist Ringkas
 
-- [ ] Fase 0: fix halaman Deposits + redesain Dashboard
-- [ ] Fase 1: Catalog + Order + Transactions
-- [ ] Fase 2: Deposit + Midtrans Snap frontend
-- [ ] Fase 3: Notifikasi + Favorit
-- [ ] Fase 4: Reseller
-- [ ] Fase 5: Admin Panel
-- [ ] Fase 6: PWA (manifest, service worker, push)
-- [ ] Fase 7: QA & security hardening
+- [x] Fase 0: fix halaman Deposits + redesain Dashboard
+- [x] Fase 1: Catalog + Order + Transactions
+- [x] Fase 2: Deposit + Midtrans Snap frontend
+- [x] Fase 3: Notifikasi + Favorit
+- [x] Fase 4: Reseller
+- [x] Fase 5: Admin Panel
+- [x] Fase 6: PWA — manifest + icons + dark mode done; service worker/offline caching masih ditunda (belum diminta)
+- [x] Fase 7: QA & security hardening — test suite + role-middleware bug fix

@@ -18,6 +18,11 @@ class DepositController extends Controller
         ]);
     }
 
+    public function create(): Response
+    {
+        return Inertia::render('Deposits/Create');
+    }
+
     public function store(Request $request, MidtransService $midtrans)
     {
         $validated = $request->validate([

@@ -5,6 +5,7 @@ namespace App\Actions\Order;
 use App\Events\TransactionCompleted;
 use App\Events\TransactionFailed;
 use App\Models\Commission;
+use App\Models\LoyaltyPoint;
 use App\Models\ResellerDownline;
 use App\Models\Transaction;
 use App\Models\User;
@@ -31,11 +32,20 @@ class ApplyProviderResultAction
 
     private function markSuccess(Transaction $transaction): void
     {
-        $transaction->update(['status' => Transaction::STATUS_SUCCESS]);
+        DB::transaction(function () use ($transaction) {
+            $lockedTransaction = Transaction::query()->with('product')->lockForUpdate()->findOrFail($transaction->id);
 
-        $this->creditResellerCommission($transaction);
+            if ($lockedTransaction->status === Transaction::STATUS_SUCCESS) {
+                return;
+            }
 
-        TransactionCompleted::dispatch($transaction);
+            $lockedTransaction->update(['status' => Transaction::STATUS_SUCCESS]);
+
+            $this->creditResellerCommission($lockedTransaction);
+            $this->grantLoyaltyPoints($lockedTransaction);
+
+            TransactionCompleted::dispatch($lockedTransaction);
+        });
     }
 
     private function markFailed(Transaction $transaction): void
@@ -77,5 +87,24 @@ class ApplyProviderResultAction
             'amount' => $margin,
             'status' => Commission::STATUS_PENDING,
         ]);
+    }
+
+    private function grantLoyaltyPoints(Transaction $transaction): void
+    {
+        if (! $transaction->user_id) {
+            return;
+        }
+
+        $points = max(1, (int) floor(((float) $transaction->price) / 100));
+
+        LoyaltyPoint::firstOrCreate(
+            ['transaction_id' => $transaction->id],
+            [
+                'user_id' => $transaction->user_id,
+                'points' => $points,
+                'source' => 'cashback',
+                'description' => 'Cashback transaksi '.$transaction->invoice_no,
+            ]
+        );
     }
 }

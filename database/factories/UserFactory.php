@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\PriceLevel;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -10,7 +11,7 @@ use Illuminate\Support\Str;
 use Laravel\Jetstream\Features;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
+ * @extends Factory<User>
  */
 class UserFactory extends Factory
 {
@@ -31,6 +32,8 @@ class UserFactory extends Factory
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
+            'phone' => fake()->unique()->numerify('08##########'),
+            'balance' => fake()->numberBetween(0, 500000),
             'two_factor_secret' => null,
             'two_factor_recovery_codes' => null,
             'remember_token' => Str::random(10),
@@ -46,6 +49,15 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
+        ]);
+    }
+
+    /** Assign an existing reseller-tier price level to this user. */
+    public function reseller(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'price_level_id' => PriceLevel::query()->where('is_reseller_level', true)->inRandomOrder()->value('id'),
+            'balance' => fake()->numberBetween(100000, 2000000),
         ]);
     }
 

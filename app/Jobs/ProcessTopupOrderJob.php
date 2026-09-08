@@ -17,9 +17,7 @@ class ProcessTopupOrderJob implements ShouldQueue
 
     public array $backoff = [10, 30, 60];
 
-    public function __construct(public readonly int $transactionId)
-    {
-    }
+    public function __construct(public readonly int $transactionId) {}
 
     public function handle(ProviderRouter $router, ApplyProviderResultAction $applyResult): void
     {

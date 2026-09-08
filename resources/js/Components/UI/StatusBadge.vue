@@ -1,0 +1,27 @@
+<script setup>
+import { computed } from 'vue';
+
+const props = defineProps({
+    status: { type: String, required: true },
+});
+
+const config = {
+    pending: { label: 'Pending', classes: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300' },
+    processing: { label: 'Diproses', classes: 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300' },
+    success: { label: 'Berhasil', classes: 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' },
+    failed: { label: 'Gagal', classes: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300' },
+    refund: { label: 'Refund', classes: 'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300' },
+    paid: { label: 'Dibayar', classes: 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' },
+};
+
+const badge = computed(() => config[props.status] ?? {
+    label: props.status,
+    classes: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300',
+});
+</script>
+
+<template>
+    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap" :class="badge.classes">
+        {{ badge.label }}
+    </span>
+</template>
